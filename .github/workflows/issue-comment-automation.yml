@@ -1,0 +1,32 @@
+name: Issue Comment Automation
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  auto-comment:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'completed' || github.event.label.name == 'wontfix' || github.event.label.name == 'bug'
+    steps:
+      - name: Comment on issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const label = context.payload.label.name;
+            let message = '';
+            
+            if (label === 'completed') {
+              message = 'This issue has been resolved. Thank you for your contribution!';
+            } else if (label === 'wontfix') {
+              message = 'After review, we have decided not to address this issue at this time.';
+            } else if (label === 'bug') {
+              message = 'Thank you for reporting this bug. Our team will investigate and fix it.';
+            }
+            
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: message
+            });
